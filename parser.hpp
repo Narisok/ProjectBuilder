@@ -16,11 +16,13 @@ void parse_arguments(int argc, char ** argv);
 
 //std::filesystem::path -> output parent path
 //std::string           -> output file name
-std::pair<std::filesystem::path, std::string> & get_output_path_and_name();
+const std::pair<std::filesystem::path, std::string> & get_output_path_and_name();
 
-std::vector<std::filesystem::path> & get_files_to_build();
+const std::vector<std::filesystem::path> & get_files_to_build();
 
-std::set<std::string> & get_compiler_flags();
+const std::set<std::string> & get_compiler_flags();
+
+const std::vector<std::string> & get_libs();
 
 bool force_rebuild();
 

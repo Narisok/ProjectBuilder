@@ -82,7 +82,7 @@ void parse_arguments(int argc, char ** argv)
     }
 }
 
-set<string>& get_compiler_flags()
+const set<string>& get_compiler_flags()
 {
     static set<string> compiler_flags{};
     static bool compiler_flags_parsed = false;
@@ -97,7 +97,7 @@ set<string>& get_compiler_flags()
     return compiler_flags;
 }
 
-pair<fs::path, string>& get_output_path_and_name()
+const pair<fs::path, string>& get_output_path_and_name()
 {
     static pair<fs::path, string> result{};
     static bool get_out_path_parsed = false;
@@ -138,7 +138,7 @@ pair<fs::path, string>& get_output_path_and_name()
     return result;
 }
 
-vector<fs::path>& get_files_to_build()
+const vector<fs::path>& get_files_to_build()
 {
     static vector<fs::path> Files_to_Build = {};
     static bool Files_to_Build_parsed = false;
@@ -167,6 +167,20 @@ vector<fs::path>& get_files_to_build()
 
     Files_to_Build_parsed = true;
     return Files_to_Build;
+}
+
+const vector<string>& get_libs()
+{
+    static vector<string> libs = {};
+    static bool get_libs_parsed = false;
+
+    if(get_libs_parsed) return libs;
+    
+    for(auto &a : Flags_Values[flags::libs])
+        libs.push_back("-l" + move(a));
+    
+    get_libs_parsed = true;
+    return libs;
 }
 
 bool force_rebuild()
