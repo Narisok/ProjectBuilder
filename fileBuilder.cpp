@@ -10,7 +10,7 @@ string get_system_call(sysCallType type_, fs::path out_,const vector<fs::path>& 
         systemCall += a + ' ';
 
     for(auto &_file_path : files_)
-        systemCall += _file_path.string() + ' ';
+        systemCall += '\'' + _file_path.string() + "' ";
 
     switch (type_)
     {
@@ -24,7 +24,7 @@ string get_system_call(sysCallType type_, fs::path out_,const vector<fs::path>& 
     break;
     }
 
-    systemCall += "-o " + out_.string();
+    systemCall += "-o '" + out_.string() + '\'';
     return systemCall;
 }
 
@@ -37,7 +37,6 @@ void build_file(fs::path file_, fs::path path_)
         path_ /= a;
     
     path_ /= file_.stem().string() + ".o";
-    // string systemCall;
 
     if(fs::exists(path_))
     {
@@ -56,19 +55,20 @@ void build_file(fs::path file_, fs::path path_)
     cout << "\t>>it tooks: " << time_to_string((time_end - time_start).count()) << endl;
 }
 
-void link_all_files(fs::path path_, string out)
+void link_all_files(fs::path build_path_, fs::path out_file_path_)
 {
     auto time_start = high_resolution_clock::now();
     cout << "Linking..." << endl;
 
     vector<fs::path> files_to_link;
-    for(auto &p : fs::recursive_directory_iterator(path_))
+    for(auto &p : fs::recursive_directory_iterator(build_path_))
         if(p.path().extension() == ".o")
            files_to_link.push_back( p.path());
 
-    path_ /= out;
+    if(!out_file_path_.parent_path().empty())
+        fs::create_directories(out_file_path_.parent_path());
 
-    system( get_system_call(sysCallType::linking, path_, files_to_link).c_str() );
+    system( get_system_call(sysCallType::linking, out_file_path_.string(), files_to_link).c_str() );
 
     auto time_end = high_resolution_clock::now();
     cout << "\t>>it tooks: " << time_to_string((time_end - time_start).count()) << endl;

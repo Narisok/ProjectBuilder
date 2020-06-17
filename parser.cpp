@@ -6,7 +6,8 @@ namespace fs = filesystem;
 
 enum class flags
 {
-    output_folder,
+    output_build_path,
+    output_exec_path,
 
     compiler_flags,
     files_to_build,
@@ -21,7 +22,8 @@ enum class flags
 };
 
 map<flags,vector<string>> Flags_Values = {
-      {flags::output_folder,{}}
+      {flags::output_build_path,{}}
+    , {flags::output_exec_path,{}}
 
     , {flags::compiler_flags,{}}
     , {flags::files_to_build,{}}
@@ -34,9 +36,13 @@ map<flags,vector<string>> Flags_Values = {
 };
 
 map<string,flags> Flag_Names = {
-      {"-output_folder",    flags::output_folder}
-    , {"-out",              flags::output_folder}
-    , {"-o",                flags::output_folder}
+      {"-output_folder",    flags::output_build_path}
+    , {"-out_build",        flags::output_build_path}
+    , {"-out",              flags::output_build_path}
+    , {"-o",                flags::output_build_path}
+
+    , {"-out_exec",         flags::output_exec_path}
+    , {"-oe",               flags::output_exec_path}
 
     , {"-flags",            flags::compiler_flags}
 
@@ -97,42 +103,57 @@ const set<string>& get_compiler_flags()
     return compiler_flags;
 }
 
-const pair<fs::path, string>& get_output_path_and_name()
+
+static pair<fs::path, fs::path> parse_output_flags()
 {
-    static pair<fs::path, string> result{};
+    pair<fs::path, fs::path> result{};
+
+    int size = Flags_Values[flags::output_build_path].size();
+    if( size > 1)
+    {
+        //YELLOW
+        cout << "WARNING: rest of arguments are ignored (-out_build)" << endl;
+    }
+    else
+    {
+        if(size == 1)
+            result.first = *Flags_Values[flags::output_build_path].begin();
+    }
+
+    size = Flags_Values[flags::output_exec_path].size();
+    if( size > 1)
+    {
+        //YELLOW
+        cout << "WARNING: rest of arguments are ignored (-out_exec)" << endl;
+    }
+    else
+    {
+        if(size == 1)
+            result.second = *Flags_Values[flags::output_exec_path].begin();
+    }
+
+    return result;
+}
+
+const pair<fs::path, fs::path>& get_output_path_and_name()
+{
+    static pair<fs::path, fs::path> result{};
     static bool get_out_path_parsed = false;
 
     if(get_out_path_parsed) return result;
 
-    fs::path out_path;
-    string out_name;
+    result = parse_output_flags();
 
-    auto iter = Flags_Values[flags::output_folder].begin();
-    if(iter != Flags_Values[flags::output_folder].end())
-    {
-        out_path = (*iter);
-        out_name = out_path.filename();
+    string out_file_name;
+    if(result.second.empty())
+        out_file_name = result.first.filename();
 
-        //If out_name has only spaces
-        if( all_of(out_name.cbegin(), out_name.cend(), [](const char ch)->bool{return isspace(ch);}) )
-            out_name = "a.out";
-
-        out_path = out_path.parent_path();
-    }
-    else { out_name = "a.out"; }
-    
-    out_path /= "Build";
-
+    result.first.remove_filename() /= "Build";
     bool isDebug = get_compiler_flags().contains("-g");
-    if(isDebug) out_path /= "Debug";
-    else out_path /= "Release";
+    result.first /= isDebug ? "Debug" : "Release";
 
-    // if(!fs::exists(out_path))
-    //     if(!fs::create_directories(out_path))
-    //         throw string("ERROR: can't create directory >>") + out_path.string();
-
-    result.first = std::move(out_path);
-    result.second = std::move(out_name);
+    if(result.second.empty())
+        result.second = result.first / (out_file_name.empty() ? string("exec.app") : out_file_name);
 
     get_out_path_parsed = true;
     return result;

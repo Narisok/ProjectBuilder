@@ -13,14 +13,16 @@ int main(int args_count, char**args_values)
 
     parse_arguments(args_count, args_values);
  
-    auto &[path,name] = get_output_path_and_name();
+    auto &[out_build_path,out_exec_path] = get_output_path_and_name();
 
     for(auto &a : get_files_to_build())
     try{
-        build_file(a,path);
+        build_file(a,out_build_path);
     }catch(string str) {cerr << str << endl;}catch(const std::exception &ex){cerr << ex.what() << endl;}
 
-    link_all_files(path,name);
+    try{
+        link_all_files(out_build_path,out_exec_path);
+    }catch(string str) {cerr << str << endl;}catch(const std::exception &ex){cerr << ex.what() << endl;}
     
     auto end = high_resolution_clock::now();
     auto time_count = (end - start).count();

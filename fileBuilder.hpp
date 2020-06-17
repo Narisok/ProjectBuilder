@@ -14,7 +14,7 @@ std::string get_system_call(sysCallType call_type, std::filesystem::path output_
 
 void build_file(std::filesystem::path file, std::filesystem::path build_path);
 
-void link_all_files(std::filesystem::path build_path, std::string output_file_name);
+void link_all_files(std::filesystem::path build_path, std::filesystem::path output_file_path);
 
 #endif //_FILEBUILDER_HPP_
 
