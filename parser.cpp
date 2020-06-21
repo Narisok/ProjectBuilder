@@ -35,6 +35,24 @@ map<flags,vector<string>> Flags_Values = {
     , {flags::force_rebuild,{}}
 };
 
+map<flags, vector<string>> Default_Parameters = {
+      {flags::folders_to_build, {fs::path("./")}}
+    , {flags::compiler_flags, { "-std=c++2a"
+                              , "-g"
+                              , "-Wall"
+                              , "-Wextra"
+                              , "-Wpedantic"
+                              , "-Wsign-promo"
+                              , "-Wold-style-cast"
+                              , "-Woverloaded-virtual" 
+                              , "-Wnon-virtual-dtor" 
+                              , "-Wfloat-equal" 
+                              , "-Wshadow=compatible-local" 
+                              , "-Wno-dangling-else"
+                              , "-Wno-unused"}
+                              }
+};
+
 map<string,flags> Flag_Names = {
       {"-output_folder",    flags::output_build_path}
     , {"-out_build",        flags::output_build_path}
@@ -68,6 +86,7 @@ map<flags,bool> Enabled_Flags = {
 };
 
 
+
 void parse_arguments(int argc, char ** argv)
 {
     flags selected_flag{flags::none};
@@ -99,6 +118,11 @@ const set<string>& get_compiler_flags()
     for(auto &a : Flags_Values[flags::compiler_flags])
         compiler_flags.insert(std::move( a.insert(0,1,'-') ));
 
+    //If the compiler flags are not specified, add the default flags
+    if(compiler_flags.empty())
+        for(auto &flag_ : Default_Parameters[flags::compiler_flags])
+            compiler_flags.insert(std::move(flag_));
+    
     compiler_flags_parsed = true;
     return compiler_flags;
 }
@@ -167,24 +191,25 @@ const vector<fs::path>& get_files_to_build()
     if(Files_to_Build_parsed) return Files_to_Build;
 
     for(auto &file_ : Flags_Values[flags::files_to_build])
-    {
         Files_to_Build.emplace_back(file_);
-    }
+
+    //If the folder to build and the files to build are not specified, add the default folders to build
+    if(Files_to_Build.empty() && Flags_Values[flags::folders_to_build].empty())
+        for(auto &folders_ : Default_Parameters[flags::folders_to_build])
+            Flags_Values[flags::folders_to_build].push_back(std::move(folders_));
+    
 
     for(auto &folder_ : Flags_Values[flags::folders_to_build])
-    {
-        if(!fs::exists(folder_)) throw string("Error: folder doen't exist >>") + folder_;
+        if(!fs::exists(folder_))
+            cerr << "WARNING: folder doen't exist (-folders_to_build) >>" + folder_;
+        else for(auto &entry_ : fs::recursive_directory_iterator(folder_))
+             {
+                auto extension_ = entry_.path().extension();
+                if(extension_ == ".c" || extension_ == ".cpp")
+                    Files_to_Build.emplace_back(entry_.path());
+             }
 
-        for(auto &entry_ : fs::recursive_directory_iterator(folder_))
-        {
-            // if(entry_.is_regular_file())
-            // {
-            auto extension_ = entry_.path().extension();
-            if(extension_ == ".c" || extension_ == ".cpp")
-                Files_to_Build.emplace_back(entry_.path());
-            // }
-        }
-    }
+
 
     Files_to_Build_parsed = true;
     return Files_to_Build;

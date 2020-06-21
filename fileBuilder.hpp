@@ -2,19 +2,19 @@
 #define _FILEBUILDER_HPP_
 
 #include "parser.hpp"
+#include "logger.hpp"
 
-enum class sysCallType
-{
-    compiling,
-    linking
-};
-
-std::string get_system_call(sysCallType call_type, std::filesystem::path output_path,const std::vector<std::filesystem::path> &files_);
+#include <atomic>
 
 
-void build_file(std::filesystem::path file, std::filesystem::path build_path);
+atomic<bool> & has_error_files();
+atomic<bool> & has_warning_files();
 
-void link_all_files(std::filesystem::path build_path, std::filesystem::path output_file_path);
+std::pair<resultState,int64_t>  build_file(std::filesystem::path file, std::filesystem::path build_path, std::string & stream_);
+
+std::pair<resultState,int64_t> link_all_files(std::filesystem::path build_path, std::filesystem::path output_file_path, std::string & stream_);
+
+void thread_build_file(const std::vector<std::filesystem::path> * files_pool, std::filesystem::path build_path);
 
 #endif //_FILEBUILDER_HPP_
 
