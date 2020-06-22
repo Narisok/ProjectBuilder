@@ -17,11 +17,14 @@ enum class flags
     include_path,
 
     force_rebuild,
+    ignore_paths,
     
     none
 };
 
-map<flags,vector<string>> Flags_Values = {
+typedef vector<string> flag_container;
+
+map<flags,flag_container> Flags_Values = {
       {flags::output_build_path,{}}
     , {flags::output_exec_path,{}}
 
@@ -33,24 +36,26 @@ map<flags,vector<string>> Flags_Values = {
     , {flags::include_path,{}}
 
     , {flags::force_rebuild,{}}
+    , {flags::ignore_paths,{}}
 };
 
-map<flags, vector<string>> Default_Parameters = {
+map<flags, flag_container> Default_Parameters = {
       {flags::folders_to_build, {fs::path("./")}}
-    , {flags::compiler_flags, { "-std=c++2a"
-                              , "-g"
-                              , "-Wall"
-                              , "-Wextra"
-                              , "-Wpedantic"
-                              , "-Wsign-promo"
-                              , "-Wold-style-cast"
-                              , "-Woverloaded-virtual" 
-                              , "-Wnon-virtual-dtor" 
-                              , "-Wfloat-equal" 
-                              , "-Wshadow=compatible-local" 
-                              , "-Wno-dangling-else"
-                              , "-Wno-unused"}
+    , {flags::compiler_flags, { "std=c++2a"
+                              , "g"
+                              , "Wall"
+                              , "Wextra"
+                              , "Wpedantic"
+                              , "Wsign-promo"
+                              , "Wold-style-cast"
+                              , "Woverloaded-virtual" 
+                              , "Wnon-virtual-dtor" 
+                              , "Wfloat-equal" 
+                              , "Wshadow=compatible-local" 
+                              , "Wno-dangling-else"
+                              , "Wno-unused"}
                               }
+    , {flags::ignore_paths, {"Build"}}
 };
 
 map<string,flags> Flag_Names = {
@@ -59,6 +64,8 @@ map<string,flags> Flag_Names = {
     , {"-out",              flags::output_build_path}
     , {"-o",                flags::output_build_path}
 
+    //second argument in -o flag
+    //-o my/build/folder my/exec/folder/file_name.out  IS SAME e -o my/build/folder -oe my/exec/folder/file_name.out
     , {"-out_exec",         flags::output_exec_path}
     , {"-oe",               flags::output_exec_path}
 
@@ -79,6 +86,9 @@ map<string,flags> Flag_Names = {
 
     , {"-force_rebuild",    flags::force_rebuild}
     , {"-f",                flags::force_rebuild}
+
+    , {"-ignore",           flags::ignore_paths}
+    , {"-i",                flags::ignore_paths}
 };
 
 map<flags,bool> Enabled_Flags = {
@@ -107,6 +117,15 @@ void parse_arguments(int argc, char ** argv)
     }
 }
 
+static flag_container & get_parsed_flags(flags flag_)
+{
+    flag_container & con = Flags_Values[flag_];
+
+    //If the compiler flags are not specified, get the default flags
+    if(con.empty()) return Default_Parameters[flag_];
+    else return con;
+}
+
 const set<string>& get_compiler_flags()
 {
     static set<string> compiler_flags{};
@@ -114,50 +133,21 @@ const set<string>& get_compiler_flags()
 
     if(compiler_flags_parsed) return compiler_flags;
 
+    for(auto a : get_parsed_flags(flags::compiler_flags))
+        compiler_flags.insert(move( a.insert(0,1,'-') ));
 
-    for(auto &a : Flags_Values[flags::compiler_flags])
-        compiler_flags.insert(std::move( a.insert(0,1,'-') ));
+    // for(auto &a : Flags_Values[flags::compiler_flags])
+    //     compiler_flags.insert(std::move( a.insert(0,1,'-') ));
 
     //If the compiler flags are not specified, add the default flags
-    if(compiler_flags.empty())
-        for(auto &flag_ : Default_Parameters[flags::compiler_flags])
-            compiler_flags.insert(std::move(flag_));
+    // if(compiler_flags.empty())
+    //     for(auto &flag_ : Default_Parameters[flags::compiler_flags])
+    //         compiler_flags.insert(std::move(flag_));
     
     compiler_flags_parsed = true;
     return compiler_flags;
 }
 
-
-static pair<fs::path, fs::path> parse_output_flags()
-{
-    pair<fs::path, fs::path> result{};
-
-    int size = Flags_Values[flags::output_build_path].size();
-    if( size > 1)
-    {
-        //YELLOW
-        cout << "WARNING: rest of arguments are ignored (-out_build)" << endl;
-    }
-    else
-    {
-        if(size == 1)
-            result.first = *Flags_Values[flags::output_build_path].begin();
-    }
-
-    size = Flags_Values[flags::output_exec_path].size();
-    if( size > 1)
-    {
-        //YELLOW
-        cout << "WARNING: rest of arguments are ignored (-out_exec)" << endl;
-    }
-    else
-    {
-        if(size == 1)
-            result.second = *Flags_Values[flags::output_exec_path].begin();
-    }
-
-    return result;
-}
 
 const pair<fs::path, fs::path>& get_output_path_and_name()
 {
@@ -166,19 +156,28 @@ const pair<fs::path, fs::path>& get_output_path_and_name()
 
     if(get_out_path_parsed) return result;
 
-    result = parse_output_flags();
 
-    string out_file_name;
-    if(result.second.empty())
-        out_file_name = result.first.filename();
+    auto o_count = get_parsed_flags(flags::output_build_path).size();
+    auto oe_count = get_parsed_flags(flags::output_exec_path).size();
 
-    result.first.remove_filename() /= "Build";
-    bool isDebug = get_compiler_flags().contains("-g");
-    result.first /= isDebug ? "Debug" : "Release";
+    fs::path out_build = 
+            o_count > 0 
+            ? fs::path(get_parsed_flags(flags::output_build_path)[0]) 
+            : fs::path("Build") / (get_compiler_flags().contains("-g") ? "Debug" : "Release");
 
-    if(result.second.empty())
-        result.second = result.first / (out_file_name.empty() ? string("exec.app") : out_file_name);
+    fs::path out_exec = 
+            oe_count > 0 
+            ? fs::path(get_parsed_flags(flags::output_exec_path)[0]) 
+            :   o_count > 1 
+                ? fs::path(get_parsed_flags(flags::output_build_path)[1])
+                : out_build / "exec.app";
+    
+    //WARNING output
+    if(oe_count > 1) cout << "WARNING: Rest of arguments(1<) are ignored (-out_exec)" << endl;
+    auto ignored = oe_count > 0u ? 1u : 2u;
+    if(o_count > ignored) cout << "WARNING: Rest of argument(" << to_string(ignored) << "<) are ignored (-out_build)" << endl;
 
+    result = pair(move(out_build), move(out_exec));
     get_out_path_parsed = true;
     return result;
 }
