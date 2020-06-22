@@ -10,6 +10,20 @@ void system_call(sysCallType call_type, fs::path output_path,const vector<fs::pa
     
     for(auto &a : get_compiler_flags())
         systemCall += a + ' ';
+    
+    switch (call_type)
+    {
+    case sysCallType::compiling:
+        for(auto &a : get_include_path())
+            systemCall += '\'' + a.string() + "' ";
+    break;
+
+    case sysCallType::linking:
+        for(auto &a : get_libs_path())
+            systemCall += '\'' + a.string() + "' ";
+    break;
+    }
+    
 
     for(auto &_file_path : files_)
         systemCall += '\'' + _file_path.string() + "' ";

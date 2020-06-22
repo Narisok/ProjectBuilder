@@ -135,14 +135,6 @@ const set<string>& get_compiler_flags()
 
     for(auto a : get_parsed_flags(flags::compiler_flags))
         compiler_flags.insert(move( a.insert(0,1,'-') ));
-
-    // for(auto &a : Flags_Values[flags::compiler_flags])
-    //     compiler_flags.insert(std::move( a.insert(0,1,'-') ));
-
-    //If the compiler flags are not specified, add the default flags
-    // if(compiler_flags.empty())
-    //     for(auto &flag_ : Default_Parameters[flags::compiler_flags])
-    //         compiler_flags.insert(std::move(flag_));
     
     compiler_flags_parsed = true;
     return compiler_flags;
@@ -221,11 +213,39 @@ const vector<string>& get_libs()
 
     if(get_libs_parsed) return libs;
     
-    for(auto &a : Flags_Values[flags::libs])
+    for(auto a : get_parsed_flags(flags::libs))
         libs.push_back("-l" + move(a));
     
     get_libs_parsed = true;
     return libs;
+}
+
+const vector<fs::path>& get_libs_path()
+{
+    static vector<fs::path> libs_path = {};
+    static bool get_libs_path_parsed = false;
+
+    if(get_libs_path_parsed) return libs_path;
+    
+    for(auto a : get_parsed_flags(flags::libs_path))
+        libs_path.push_back("-L" + move(fs::path(a).lexically_normal().string()));
+    
+    get_libs_path_parsed = true;
+    return libs_path;
+}
+
+const vector<fs::path>& get_include_path()
+{
+    static vector<fs::path> incl_path = {};
+    static bool get_incl_path_parsed = false;
+
+    if(get_incl_path_parsed) return incl_path;
+    
+    for(auto &a : get_parsed_flags(flags::include_path))
+        incl_path.push_back("-I" + move(fs::path(a).lexically_normal().string()));
+    
+    get_incl_path_parsed = true;
+    return incl_path;
 }
 
 bool force_rebuild()

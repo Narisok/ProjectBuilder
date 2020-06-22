@@ -22,6 +22,10 @@ const std::set<std::string> & get_compiler_flags();
 
 const std::vector<std::string> & get_libs();
 
+const std::vector<std::filesystem::path>& get_libs_path();
+
+const std::vector<std::filesystem::path>& get_include_path();
+
 bool force_rebuild();
 
 #endif //_PARSER_HPP_
