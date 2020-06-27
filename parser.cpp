@@ -181,7 +181,9 @@ string get_linker_compiler_flag()
     string flag = "-Wl";
     for(auto &a : get_linker_flags())
         flag += ',' + a;
-    return flag;
+        
+    if(flag.size() > 3) return flag;
+    return {};
 }
 
 
