@@ -19,6 +19,10 @@ enum class flags
     force_rebuild,
     ignore_paths,
     
+
+    library_static,
+    library_dynamic,
+    
     none
 };
 
@@ -89,10 +93,20 @@ map<string,flags> Flag_Names = {
 
     , {"-ignore",           flags::ignore_paths}
     , {"-i",                flags::ignore_paths}
+
+    , {"-Wl",               flags::linker_flags}
+
+    , {"-static_library",   flags::library_static}
+    , {"-static_lib",       flags::library_static}
+
+    , {"-dynamic_library",  flags::library_dynamic}
+    , {"-dynamic_lib",      flags::library_dynamic}
 };
 
 map<flags,bool> Enabled_Flags = {
       {flags::force_rebuild, false}
+    , {flags::library_static, false}
+    , {flags::library_dynamic, false}
 };
 
 
@@ -117,7 +131,7 @@ void parse_arguments(int argc, char ** argv)
     }
 }
 
-static flag_container & get_parsed_flags(flags flag_)
+static const flag_container & get_parsed_flags(flags flag_)
 {
     flag_container & con = Flags_Values[flag_];
 
@@ -130,14 +144,35 @@ const set<string>& get_compiler_flags()
 {
     static set<string> compiler_flags{};
     static bool compiler_flags_parsed = false;
-
     if(compiler_flags_parsed) return compiler_flags;
 
-    for(auto a : get_parsed_flags(flags::compiler_flags))
+    for(auto a : Flags_Values[flags::compiler_flags])
         compiler_flags.insert(move( a.insert(0,1,'-') ));
+    for(auto a : Default_Parameters[flags::compiler_flags])
+        compiler_flags.insert(move( a.insert(0,1,'-') ));
+
+    // for(auto a : get_parsed_flags(flags::compiler_flags))
+    //     compiler_flags.insert(move( a.insert(0,1,'-') ));
     
+
     compiler_flags_parsed = true;
     return compiler_flags;
+}
+
+const set<string>& get_linker_flags()
+{
+    static set<string> linker_flags{};
+    static bool compiler_flags_parsed = false;
+    if(compiler_flags_parsed) return linker_flags;
+
+    for(auto a : Flags_Values[flags::linker_flags])
+        linker_flags.insert(move( a.insert(0,1,'-') ));
+    for(auto a : Default_Parameters[flags::linker_flags])
+        linker_flags.insert(move( a.insert(0,1,'-') ));
+    
+
+    compiler_flags_parsed = true;
+    return linker_flags;
 }
 
 
@@ -145,7 +180,6 @@ const pair<fs::path, fs::path>& get_output_path_and_name()
 {
     static pair<fs::path, fs::path> result{};
     static bool get_out_path_parsed = false;
-
     if(get_out_path_parsed) return result;
 
 
@@ -170,6 +204,7 @@ const pair<fs::path, fs::path>& get_output_path_and_name()
     if(o_count > ignored) cout << "WARNING: Rest of argument(" << to_string(ignored) << "<) are ignored (-out_build)" << endl;
 
     result = pair(move(out_build), move(out_exec));
+
     get_out_path_parsed = true;
     return result;
 }
@@ -178,8 +213,8 @@ const vector<fs::path>& get_files_to_build()
 {
     static vector<fs::path> Files_to_Build = {};
     static bool Files_to_Build_parsed = false;
-
     if(Files_to_Build_parsed) return Files_to_Build;
+
 
     for(auto &file_ : Flags_Values[flags::files_to_build])
         Files_to_Build.emplace_back(file_);
@@ -188,7 +223,7 @@ const vector<fs::path>& get_files_to_build()
     if(Files_to_Build.empty() && Flags_Values[flags::folders_to_build].empty())
         for(auto &folders_ : Default_Parameters[flags::folders_to_build])
             Flags_Values[flags::folders_to_build].push_back(std::move(folders_));
-    
+
 
     for(auto &folder_ : Flags_Values[flags::folders_to_build])
         if(!fs::exists(folder_))
@@ -197,7 +232,7 @@ const vector<fs::path>& get_files_to_build()
              {
                 auto extension_ = entry_.path().extension();
                 if(extension_ == ".c" || extension_ == ".cpp")
-                    Files_to_Build.emplace_back(entry_.path());
+                    Files_to_Build.emplace_back(entry_.path().lexically_normal());
              }
 
 
@@ -210,12 +245,13 @@ const vector<string>& get_libs()
 {
     static vector<string> libs = {};
     static bool get_libs_parsed = false;
-
     if(get_libs_parsed) return libs;
     
+
     for(auto a : get_parsed_flags(flags::libs))
         libs.push_back("-l" + move(a));
     
+
     get_libs_parsed = true;
     return libs;
 }
@@ -224,12 +260,13 @@ const vector<fs::path>& get_libs_path()
 {
     static vector<fs::path> libs_path = {};
     static bool get_libs_path_parsed = false;
-
     if(get_libs_path_parsed) return libs_path;
     
+
     for(auto a : get_parsed_flags(flags::libs_path))
         libs_path.push_back("-L" + move(fs::path(a).lexically_normal().string()));
     
+
     get_libs_path_parsed = true;
     return libs_path;
 }
@@ -238,12 +275,13 @@ const vector<fs::path>& get_include_path()
 {
     static vector<fs::path> incl_path = {};
     static bool get_incl_path_parsed = false;
-
     if(get_incl_path_parsed) return incl_path;
     
+
     for(auto &a : get_parsed_flags(flags::include_path))
-        incl_path.push_back("-I" + move(fs::path(a).lexically_normal().string()));
+        incl_path.push_back("-I" + fs::path(a).lexically_normal().string());
     
+
     get_incl_path_parsed = true;
     return incl_path;
 }
@@ -251,4 +289,14 @@ const vector<fs::path>& get_include_path()
 bool force_rebuild()
 {
     return Enabled_Flags[flags::force_rebuild];
+}
+
+bool static_library()
+{
+    return Enabled_Flags[flags::library_static];
+}
+
+bool dynamic_library()
+{
+    return Enabled_Flags[flags::library_dynamic];
 }

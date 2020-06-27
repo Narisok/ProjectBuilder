@@ -27,6 +27,8 @@ const std::vector<std::filesystem::path>& get_libs_path();
 const std::vector<std::filesystem::path>& get_include_path();
 
 bool force_rebuild();
+bool static_library();
+bool dynamic_library();
 
 #endif //_PARSER_HPP_
 
