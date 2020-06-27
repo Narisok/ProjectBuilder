@@ -18,7 +18,8 @@ enum class flags
 
     force_rebuild,
     ignore_paths,
-    
+
+    linker_flags,
 
     library_static,
     library_dynamic,
@@ -173,6 +174,14 @@ const set<string>& get_linker_flags()
 
     compiler_flags_parsed = true;
     return linker_flags;
+}
+
+string get_linker_compiler_flag()
+{
+    string flag = "-Wl";
+    for(auto &a : get_linker_flags())
+        flag += ',' + a;
+    return flag;
 }
 
 
