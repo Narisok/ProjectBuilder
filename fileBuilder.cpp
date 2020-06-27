@@ -46,7 +46,7 @@ void thread_build_file(const vector<fs::path> * files_pool, fs::path build_path)
     for(size_t my_idx = cur_idx++; my_idx < files_pool->size(); my_idx = cur_idx++)
     {
         auto file_ = files_pool->at(my_idx);
-        string mess = " file \"" + set_reset(1) + set_reset(4) + foreground(61) + file_.string() + set_reset(24) + set_reset(21) + '"';
+        string mess = " file \"" + set_reset(1) + set_reset(4) + foreground(61)  + file_.string() + set_reset(24) + set_reset(22) + '"';
 
         log(message("Compiling"+mess+" ...\n","WAIT",message_type::wait));
         auto[state,elapsed_time] = build_file(file_,build_path, my_stream);
