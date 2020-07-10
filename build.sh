@@ -66,13 +66,17 @@ build_files=(
 output_path='./builder.app'
 
 #=========================C++ STANDART=================
-cpp_standart=c++2a
+cpp_standart=-std=c++2a
 #c++2a
 #c++17
 #c++14
 #c++11
 
+cpp_compiler=g++
+#gcc
+#g++
+
 ${pre_build_tasks[@]}
-g++ -std=$cpp_standart  ${flags[@]} ${lib_path[@]} ${include_path[@]}  ${build_files[@]} ${libs[@]} -o ${output_path}
+${cpp_compiler} ${cpp_standart}  ${flags[@]} ${lib_path[@]} ${include_path[@]}  ${build_files[@]} ${libs[@]} -o ${output_path}
 echo -e "\e[4;32m\nElapsed time in seconds:\e[0m\e[1;31m $((($(date +%s%N) - $ts)/1000000000)),$(((($(date +%s%N) - $ts)/1000000)%1000))\e[0m"
 
