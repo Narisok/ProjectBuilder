@@ -1,5 +1,8 @@
 #include "parser.hpp"
 
+#ifdef __clang__
+#define contains count
+#endif
 
 using namespace std;
 namespace fs = filesystem;
@@ -120,9 +123,9 @@ void parse_arguments(int argc, char ** argv)
         string cur_arg = argv[i];
         if(*cur_arg.begin() == '-')
         {
-            if(Flag_Names.contains(cur_arg)) selected_flag = Flag_Names[cur_arg];
+            if(Flag_Names. contains (cur_arg)) selected_flag = Flag_Names[cur_arg];
             else {selected_flag = flags::none; cerr << "Bad flag \">" << cur_arg << "<\"" << endl;}
-            if(Enabled_Flags.contains(selected_flag)) Enabled_Flags[selected_flag] = true;
+            if(Enabled_Flags. contains (selected_flag)) Enabled_Flags[selected_flag] = true;
         }
         else
         {
@@ -200,7 +203,7 @@ const pair<fs::path, fs::path>& get_output_path_and_name()
     fs::path out_build = 
             o_count > 0 
             ? fs::path(get_parsed_flags(flags::output_build_path)[0]) 
-            : fs::path("Build") / (get_compiler_flags().contains("-g") ? "Debug" : "Release");
+            : fs::path("Build") / (get_compiler_flags(). contains ("-g") ? "Debug" : "Release");
 
     fs::path out_exec = 
             oe_count > 0 
