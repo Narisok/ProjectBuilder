@@ -33,8 +33,6 @@
 
 # VScode files and folders
 .vscode/
-Build/Debug/test_project/Header.hpp
-Build/Debug/test_project/main.cpp
-Build/Debug/test_project/source.cpp
-Build/Debug/test_project/nth/main.cpp
-Build/Release/build
+
+# Project builder files and folders
+Build/
