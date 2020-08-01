@@ -1,10 +1,11 @@
 #ifndef _FILEBUILDER_HPP_
 #define _FILEBUILDER_HPP_
 
+#include "pch.hpp"
 #include "parser.hpp"
 #include "logger.hpp"
 
-#include <atomic>
+
 
 
 atomic<bool> & has_error_files();

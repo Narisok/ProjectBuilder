@@ -1,5 +1,4 @@
-#include <map>
-#include <mutex>
+#include "pch.hpp"
 
 #include "logger.hpp"
 
@@ -57,13 +56,15 @@ void log_head_sub(const std::string & head_, const std::string & str_)
     auto iter = str_.begin();
     if(iter == str_.end()) goto Exit;
 
-    cout << foreground(99)+set_reset(1) << " ↑  " << set_reset(0);
+    // cout << foreground(99)+set_reset(1) << " ↑  " << set_reset(0);
+    cout << '\t';
 
     do{
         if(*iter == '\n')
         {
             if(++iter == str_.end()) break;
-            cout << foreground(99)+set_reset(1) << "\n |  " << set_reset(0);
+            // cout << foreground(99)+set_reset(1) << "\n |  " << set_reset(0);
+            cout <<  "\n\t";
             continue;
         }
         cout << *iter++;

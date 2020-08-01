@@ -1,5 +1,6 @@
+#include "pch.hpp"
+
 #include "systemCall.hpp"
-#include <cstdio>
 
 using namespace std;
 namespace fs = filesystem;

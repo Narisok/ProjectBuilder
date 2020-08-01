@@ -1,8 +1,7 @@
 #ifndef _TIME_HPP_
 #define _TIME_HPP_
 
-#include <string>
-#include <chrono>
+#include "pch.hpp"
 
 using namespace std;
 using namespace chrono;

@@ -9,6 +9,8 @@ namespace fs = filesystem;
 
 enum class flags
 {
+    compiler,
+
     output_build_path,
     output_exec_path,
 
@@ -49,6 +51,7 @@ map<flags,flag_container> Flags_Values = {
 
 map<flags, flag_container> Default_Parameters = {
       {flags::folders_to_build, {fs::path("./")}}
+    , {flags::compiler, {"g++"}}
     , {flags::compiler_flags, { "std=c++2a"
                               , "g"
                               , "Wall"
@@ -71,6 +74,8 @@ map<string,flags> Flag_Names = {
     , {"-out_build",        flags::output_build_path}
     , {"-out",              flags::output_build_path}
     , {"-o",                flags::output_build_path}
+
+    , {"-compiler",         flags::compiler}
 
     //second argument in -o flag
     //-o my/build/folder my/exec/folder/file_name.out  IS SAME e -o my/build/folder -oe my/exec/folder/file_name.out
@@ -177,6 +182,13 @@ const set<string>& get_linker_flags()
 
     compiler_flags_parsed = true;
     return linker_flags;
+}
+
+string get_compiler()
+{
+    string compiler;
+    // if(get_parsed_flags(flags::compiler).size() > 1)
+
 }
 
 string get_linker_compiler_flag()
