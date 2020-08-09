@@ -1,4 +1,5 @@
-#include "../pch.hpp"
+#include <pch>
+
 #include "parser.hpp"
 
 vector<flag> Parser::supported_flags = {

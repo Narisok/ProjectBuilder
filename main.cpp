@@ -1,6 +1,5 @@
-#include "pch.hpp"
+#include <pch>
 
-#include "fileBuilder.hpp"
 #include "Parser/parser.hpp"
 
 
@@ -12,7 +11,7 @@ using namespace chrono;
 int main(int args_count, char**args_values)
 {
     auto start = high_resolution_clock::now();
-    log(message("Building ...\n","BUILD START",message_type::wait));
+    // log(message("Building ...\n","BUILD START",message_type::wait));
 
     Parser::parse(args_count,  args_values);
 
@@ -70,7 +69,7 @@ int main(int args_count, char**args_values)
     auto end = high_resolution_clock::now();
     auto time_count = (end - start).count();
     
-    log(message("Build tooks: "+time_to_string(time_count),has_error_files() ? "BUILD FAILED" : "BUILD SUCCESS",has_error_files() ? message_type::error : message_type::done));
+    // log(message("Build tooks: "+time_to_string(time_count),has_error_files() ? "BUILD FAILED" : "BUILD SUCCESS",has_error_files() ? message_type::error : message_type::done));
     
     return 0;
 }

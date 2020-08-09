@@ -1,7 +1,7 @@
 #ifndef _LOGGER_HPP_
 #define _LOGGER_HPP_
 
-#include "pch.hpp"
+#include <pch>
 
 
 inline std::string foreground(int color_){return std::string("\033[38;5;" + std::to_string(color_) + "m");}
