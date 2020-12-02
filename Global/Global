@@ -1,0 +1,28 @@
+#pragma once
+
+#include <PBheader>
+
+#include "../Parser/flag.hpp"
+
+namespace Global
+{
+    class Parser
+    {
+        Parser() = delete;
+        Parser(const Parser&) = delete;
+        Parser(Parser&&) = delete;
+        Parser& operator= (const Parser&) = delete;
+        Parser& operator= (Parser&&) = delete;
+
+    public:
+
+        static string AliasToName(const string & alias);
+        static bool AliasHasName(const string & alias);
+        // static parser::Flag FlagFromName(const string & name);
+
+    private:
+        // static vector<parser::Flag> Supported_Flags;
+        static pair<bool, map<string, string>> alias_to_name;
+        static void parse_flags();
+    };
+}
